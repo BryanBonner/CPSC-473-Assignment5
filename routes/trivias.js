@@ -18,8 +18,7 @@ client.set('wrong', 0);
 
 // GET question - returns a single trivia question
 router.get('/question', jsonParser, function(req, res) {
-
-  //Query for the current count of the documents for upper boundary limit
+	// Query for the current count of the documents for upper boundary limit
 	Trivia.count({}, function(err, c) {
 		if(err) {
 			console.log('Probably no questions in the db');
@@ -27,11 +26,10 @@ router.get('/question', jsonParser, function(req, res) {
 		}
 		else {
 			var randomId = Math.floor(Math.random() *(c)+1);
-      Trivia.findOne({'answerid' : randomId}, 'question', function(err, trivia) {
-        if (err) throw err;
-        console.log({question: trivia.question + 'answerid: ' + randomId});
-        res.json({'question': trivia.question, 'answerid': randomId});
-      });
+			Trivia.findOne({'answerid' : randomId}, 'question', function(err, trivia) {
+				if (err) throw err;
+				res.json({'question': trivia.question, 'answerid': randomId});
+			});
 		}
 	});
 });
@@ -48,54 +46,51 @@ router.post('/question', function(req, res) {
   //counts the total documents in our collection
 	Trivia.count({}, function(err, c) {
 		  if(err) {
-			    console.log(err);
-		    }
-		  else {
-        count = c + 1;
-			  var newTrivia = new Trivia({
-				    question: question,
-				    answer: answer,
-				    answerid: count
+			  console.log(err);
+		  }
+		else {
+			count = c + 1;
+			var newTrivia = new Trivia({
+				question: question,
+				answer: answer,
+				answerid: count
 			});
 			newTrivia.save(function(err) {
-        if(err) throw err;
-      });
-      res.json('question: ' + question + 'Answer: ' + answer + 'Answer Id: '
-				     + count);
-           }
-    });
+				if(err) throw err;
+			});
+			res.json('question: ' + question + 'Answer: ' + answer + 'Answer Id: '
+				 + count);
+		}
+	});
 });
 
 // POST answer
 router.post('/answer', jsonParser, function(req, res) {
-  var useranswer = req.body.question, //users answer
-      answerid = req.body.id; //answerid of the question
-  console.log("client request: " + useranswer + " Id: " + answerid);
-
-//Check user's answer with db answer
+	var useranswer = req.body.question, //users answer
+	    answerid = req.body.id; //answerid of the question
+	
+	//Check user's answer with db answer
 	Trivia.findOne({'answerid' : answerid}, 'answer', function(err, trivia) {
 		if (err) throw err;
 		if (useranswer == trivia.answer) {
 			client.incr('right');
-      res.json({'correct': 'true'});
+			res.json({'correct': 'true'});
 		} else {
 			client.incr('wrong');
-      res.json({'correct': 'false'});
-    }
-  });
+			res.json({'correct': 'false'});
+		}
+	});
 });
 
 // GET score
 router.get('/score', jsonParser, function(req, res) {
-  client.get('wrong', function (err, reply) {
-    if (err) {
-      console.log('Redis error: ' + err);
-    } else {
-      var wrong = reply;
-      console.log('Right & wrong answers: ' + reply);
-      res.json({'score': wrong});
-    }
-  });
+	client.mget('right', 'wrong', function (err, reply) {
+		if (err) {
+			console.log('Redis error: ' + err);
+		} else {
+			res.json({'score': reply});
+		}
+	});
 });
 
 module.exports = router;
