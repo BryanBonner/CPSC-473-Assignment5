@@ -1,0 +1,41 @@
+#user-container {
+	margin-bottom: 1%;
+	margin-top: 2%;
+	margin-left: 40%;
+}
+#user-input {
+	margin-bottom: 1%;
+	margin-left: 40%;
+}
+#join {
+	margin-bottom: 1%;
+	margin-left: 40%;
+}
+#players {
+	margin-left: 20%;
+}
+#users {
+	margin-left: 20%;
+}
+#question {
+	margin-left: 20%;
+}
+#foundQuestion {
+	margin-left: 20%;
+}
+#answer-container {
+	margin-bottom: 1%;
+	margin-top: 2%;
+	margin-left: 40%;
+}
+#start {
+	margin-left: 40%;
+}
+#user-outcome {
+	margin-left: 20%;
+	margin-right: 20%;
+}
+#user-score {
+	margin-left: 20%;
+	margin-right: 20%;
+}
