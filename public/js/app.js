@@ -3,19 +3,20 @@ var main = function () {
 
 	var socket = io();
 	var url = "http://localhost:3000/trivia";
-	var question, userAnswer, qObj = {id: null, question: null}, connectCount = 0,
-			answeredCount = 0;
+	var question, userAnswer, score,
+			qObj = {id: null, question: null}, connectCount = 0,
+			answeredCount = 0, usedQuestions = [], scoreObj = {};
 
 // SOCKET IO .on
 socket.on('user join', function(msg){
 	connectCount++;
-	answeredCount = connectCount;
 	$('#users').append($('<p>').text(msg));
 	$('#user').append($('<p>').text(msg));
 });
 
 socket.on('game start', function(question){
 	//pass the question id to ALL clients in order to correctly POST answer
+		getScore();
 	qObj.id = question.answerid;
 	$('#foundQuestion').empty();
 	$('#foundQuestion').append($('<p>').text(question.question));
@@ -23,13 +24,26 @@ socket.on('game start', function(question){
 });
 
 socket.on('user answers', function(msg){
-  answeredCount--;
-	$('#outcome').append($('<p>').text(msg));
+	answeredCount++;
+	if(answeredCount == connectCount) {
+		answeredCount = 0;
+		getQuestion();
+
+		$('#outcome').append($('<p>').text(msg));
+	}
+});
+
+socket.on('user scores', function(scoreObj) {
+	var scoreRight = scoreObj['right'],
+			scoreWrong = scoreObj['wrong'];
+			console.log(scoreRight + scoreWrong);
+	$('#outcome').append($('<p>').text(scoreRight));
 });
 // END SOCKET IO
 
 //GET a question & if succesful emit it to all connected sockets
 function getQuestion() {
+	$('#answer').show();
 	$.ajax({
 		type: 'GET',
 		url: url + '/question',
@@ -40,12 +54,25 @@ function getQuestion() {
 			socket.emit('game start', question)
 		},
 		fail: function(question) {
-			alert('failed');
+			alert('failed to retrieve question');
 		}
 	});
 };
-function getConnectCount() {
-	return connectCount;
+
+function getScore() {
+	$.ajax({
+		type: 'GET',
+		url: url + '/score',
+		contentType: 'application/json',
+		dataType: 'json',
+		data:	scoreObj,
+		success: function(scoreObj) {
+			socket.emit('user scores', scoreObj);
+		},
+		fail: function(scoreObj) {
+			alert('failed to retrieve score');
+		}
+	});
 }
 
 // Get user name and emit that a user joined the game
@@ -61,27 +88,29 @@ function getConnectCount() {
 
 $('#start').click(function() {
 	getQuestion();
+	getScore();
 });
 
-$('#answer').click(function() {
-	if($('#useranswer').val() == '' || null) {
-		alert("Enter an answer before submitting");
-	}
-	else {
-		qObj.question = $('#useranswer').val();
-		$.ajax({
-			type: 'POST',
-			url: url + '/answer',
-			contentType: 'application/json',
-			dataType: 'json',
-			data:	(JSON.stringify(qObj)),
-			success: function(response) {
-				socket.emit('user answers', response['correct']);
-				getQuestion();
-			}
-		});
-	}
-})
+// User submits an answer to a question & emits user's response
+	$('#answer').click(function() {
+		if($('#useranswer').val() == '' || null) {
+			alert("Enter an answer before submitting");
+		}
+		else {
+			qObj.question = $('#useranswer').val();
+			$('#answer').hide();
+			$.ajax({
+				type: 'POST',
+				url: url + '/answer',
+				contentType: 'application/json',
+				dataType: 'json',
+				data:	(JSON.stringify(qObj)),
+				success: function(response) {
+					socket.emit('user answers', response['correct']);
+				}
+			});
+		}
+	});
 };
 
 $(document).ready(main);

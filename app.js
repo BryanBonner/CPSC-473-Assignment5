@@ -63,6 +63,9 @@ io.on('connection', function(socket){
   socket.on('user answers', function(msg) {
       io.emit('user answers', msg);
   });
+  socket.on('user scores', function(scoreObj) {
+    io.emit('user scores', scoreObj);
+  });
 });
 
 // Listen @ localhost:3000

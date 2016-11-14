@@ -15,6 +15,7 @@ client.on('connect', function() {
 
 client.set('right', 0);
 client.set('wrong', 0);
+
 // GET question - returns a single trivia question
 router.get('/question', jsonParser, function(req, res) {
 
@@ -75,27 +76,26 @@ router.post('/answer', jsonParser, function(req, res) {
 	Trivia.findOne({'answerid' : answerid}, 'answer', function(err, trivia) {
 		if (err) throw err;
 		if (useranswer == trivia.answer) {
-			client.incr('right', function() {
-        console.log("incrementing");
-      });
-      console.log(client.get('right'));
+			client.incr('right');
       res.json({'correct': 'true'});
 		} else {
-			client.incr('wrong', function() {
-        console.log("incrementing");
-      });
-      console.log(client.get('wrong'));
+			client.incr('wrong');
       res.json({'correct': 'false'});
-		}
-	});
+    }
+  });
 });
 
-// GET score - TODO: use mget and get reply as callback
-router.get('/score', function(req, res) {
-  var rightAnswers = client.get('right'),
-      wrongAnswers = client.get('wrong'),
-      result = {'right': rightAnswers, 'wrong': wrongAnswers};
-      res.json(result);
+// GET score
+router.get('/score', jsonParser, function(req, res) {
+  client.get('wrong', function (err, reply) {
+    if (err) {
+      console.log('Redis error: ' + err);
+    } else {
+      var wrong = reply;
+      console.log('Right & wrong answers: ' + reply);
+      res.json({'score': wrong});
+    }
+  });
 });
 
 module.exports = router;
