@@ -2,7 +2,7 @@
 ##Assignment 5 - Socket IO Trivia
 
 ####Mongodb connected to mlabs with prepopulated questions.
-####Requires node & redis running
+####Requires redis running on port 3000
 
 ###To run:
 1. download project directory
