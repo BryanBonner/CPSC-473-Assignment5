@@ -42,11 +42,11 @@ router.post('/question', function(req, res) {
 	var question = req.body.question,
 	    answer = req.body.answer,
 	    count = 1;
-
-  //counts the total documents in our collection
+	
+	//counts the total documents in our collection
 	Trivia.count({}, function(err, c) {
-		  if(err) {
-			  console.log(err);
+		if(err) {
+			console.log(err);
 		  }
 		else {
 			count = c + 1;
